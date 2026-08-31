@@ -1,0 +1,120 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>GeoForge 数据转换器</title>
+<style>
+  :root { --teal:#00B3A4; --ink:#0F172A; --muted:#64748B; --bg:#F8FAFC; --purple:#7C3AED; }
+  * { box-sizing:border-box; margin:0; padding:0; }
+  body { font-family:"Microsoft YaHei",-apple-system,Segoe UI,Roboto,sans-serif; background:var(--bg); color:var(--ink); line-height:1.7; }
+  .wrap { max-width:920px; margin:0 auto; padding:0 20px 60px; }
+
+  header { background:linear-gradient(135deg,#0F172A,#1E3A5F); color:#fff; padding:52px 0 40px; margin-bottom:40px; }
+  .brand { display:flex; align-items:center; gap:14px; }
+  .logo { width:44px; height:44px; border-radius:10px; background:var(--teal); color:#fff; font-weight:800; font-size:26px; display:flex; align-items:center; justify-content:center; }
+  h1 { font-size:28px; letter-spacing:.5px; }
+  .tagline { color:#BFDBFE; margin-top:6px; font-size:15px; }
+  .badge-row { margin-top:20px; display:flex; flex-wrap:wrap; gap:8px; }
+  .badge { background:var(--purple); color:#fff; font-size:12px; font-weight:600; padding:4px 12px; border-radius:999px; }
+  .badge.teal { background:var(--teal); }
+
+  section { background:#fff; border:1px solid #E2E8F0; border-radius:14px; padding:24px 26px; margin-bottom:24px; box-shadow:0 1px 3px rgba(15,23,42,.05); }
+  h2 { font-size:19px; margin-bottom:14px; color:var(--ink); border-left:4px solid var(--teal); padding-left:12px; }
+  h3 { font-size:15px; margin:14px 0 6px; color:#1E293B; }
+  p, li { color:#334155; font-size:14.5px; }
+  ul { padding-left:22px; }
+  li { margin:4px 0; }
+
+  table { width:100%; border-collapse:collapse; margin-top:10px; font-size:13.5px; }
+  th, td { text-align:left; padding:8px 10px; border-bottom:1px solid #EEF2F7; }
+  th { background:#F1F5F9; color:#334155; font-weight:600; }
+  code { background:#F1F5F9; color:#BE185D; padding:1px 6px; border-radius:5px; font-size:13px; }
+
+  .btn { display:inline-block; background:var(--purple); color:#fff; text-decoration:none; padding:10px 22px; border-radius:9px; font-weight:600; font-size:14px; transition:.15s; }
+  .btn:hover { filter:brightness(1.08); }
+  .btn.teal { background:var(--teal); }
+
+  footer { text-align:center; color:var(--muted); font-size:13px; margin-top:20px; }
+</style>
+</head>
+<body>
+<header>
+  <div class="wrap">
+    <div class="brand">
+      <div class="logo">G</div>
+      <div>
+        <h1>GeoForge 数据转换器</h1>
+        <div class="tagline">专业的 多格式 GIS/CAD 数据互转工具 · V 1.0.1.26081</div>
+      </div>
+    </div>
+    <div class="badge-row">
+      <span class="badge">10 种格式互转</span>
+      <span class="badge teal">CGCS2000→WGS84</span>
+      <span class="badge">kistom / 奥维 / JOSM</span>
+      <span class="badge">绿色单文件</span>
+    </div>
+  </div>
+</header>
+
+<div class="wrap">
+
+  <section>
+    <h2>简介</h2>
+    <p>GeoForge 是一款专注于 <strong>GIS/CAD 数据坐标正确可用</strong> 的桌面转换工具。支持在
+    <code>GeoJSON / JSON / CSV / (OV)TXT / KML / OVKML / GPX / DXF / OSM / XML</code> 等格式之间互转，
+    转换过程带实时进度与时间估算，专为 <strong>kistom 在线预览</strong> 与 <strong>奥维互动地图 / JOSM / Google Earth</strong> 优化。</p>
+  </section>
+
+  <section>
+    <h2>核心功能</h2>
+    <ul>
+      <li><strong>10 种格式互转</strong>：GeoJSON / JSON / CSV / (OV)TXT / KML / OVKML / GPX / DXF / OSM / XML</li>
+      <li><strong>坐标换算</strong>：DXF / DWG → 经纬度格式自动按 CGCS2000 高斯-克吕格 3° 带换算为 WGS84，坐标精准</li>
+      <li><strong>一键预置参考点</strong>：Z29 / Z30 / Z35–Z40，快速选择 3° 带中央经线</li>
+      <li><strong>实时进度</strong>：进度条百分比 + 已用时间 + 剩余时间，转换中可取消</li>
+      <li><strong>完整路径提示</strong>：完成弹窗显示所有输出文件完整路径，可一键打开输出目录</li>
+      <li><strong>绿色单文件</strong>：无需安装 Python 或任何依赖，双击即可运行，图标内嵌 exe</li>
+    </ul>
+  </section>
+
+  <section>
+    <h2>目标格式一览</h2>
+    <table>
+      <tr><th>格式</th><th>说明</th><th>适用</th></tr>
+      <tr><td><code>GeoJSON</code></td><td>标准地理 JSON，线/面带编号、文字点含 label</td><td>kistom / 地图</td></tr>
+      <tr><td><code>JSON</code></td><td>标准 GeoJSON 结构</td><td>kistom</td></tr>
+      <tr><td><code>CSV</code></td><td>逗号分隔表格，空行分隔要素</td><td>kistom / 表格</td></tr>
+      <tr><td><code>(OV)TXT</code></td><td>一次生成 KS.txt (kistom) + OV.txt (奥维)</td><td>kistom + 奥维</td></tr>
+      <tr><td><code>KML</code></td><td>Google Earth / Maps 标准格式</td><td>Google Earth / 奥维</td></tr>
+      <tr><td><code>OVKML</code></td><td>专为奥维优化，连通线/面</td><td>奥维</td></tr>
+      <tr><td><code>GPX</code></td><td>全球定位交换格式</td><td>奥维 / GPS</td></tr>
+      <tr><td><code>DXF</code></td><td>原样复制源 DXF</td><td>CAD / GIS</td></tr>
+      <tr><td><code>OSM</code></td><td>OpenStreetMap XML，兼容 JOSM</td><td>JOSM / kistom</td></tr>
+      <tr><td><code>XML</code></td><td>通用 XML（KML 兼容结构）</td><td>kistom</td></tr>
+    </table>
+  </section>
+
+  <section>
+    <h2>快速开始</h2>
+    <ol>
+      <li>选择源文件（支持的文件可直接拖入窗口）</li>
+      <li>源为 DXF/DWG 时，填写 <strong>参考经纬度</strong>（或点 Z 按钮预置 3° 带中央经线）</li>
+      <li>点击需要的 <strong>目标格式徽章</strong></li>
+      <li>点击下方「开始估算」查看输出大小，「开始转换」执行转换</li>
+      <li>完成弹窗显示输出文件完整路径，一键打开输出目录</li>
+    </ol>
+  </section>
+
+  <section style="text-align:center;">
+    <h2 style="text-align:left;">下载</h2>
+    <p style="margin-bottom:16px;">前往 Release 下载最新版 <code>GeoForge.exe</code>（绿色单文件）。</p>
+    <a class="btn" href="https://github.com/CrazyKevinZ/GeoForge/releases" target="_blank" rel="noopener">前往 Releases 下载 ⬇</a>
+    &nbsp;
+    <a class="btn teal" href="https://github.com/CrazyKevinZ/GeoForge" target="_blank" rel="noopener">查看源码</a>
+  </section>
+
+  <footer>© 2026 GeoForge · 基于 Python + ezdxf + tkinter 构建 · 欢迎使用与反馈</footer>
+</div>
+</body>
+</html>
