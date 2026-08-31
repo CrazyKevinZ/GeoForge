@@ -19,7 +19,7 @@ from core.exporter import FORMATS, FMT_LABEL
 from core.estimator import human_size
 
 APP_NAME = "GeoForge 数据转换器"
-VIP_TEXT = "V 1.0.1.26081"
+VIP_TEXT = "V 1.0.1.26091"
 
 EXT_TO_FMT = {
     ".dxf": "GeoJSON", ".dwg": "GeoJSON", ".geojson": "KML", ".kml": "GeoJSON",
@@ -184,15 +184,27 @@ class GeoForgeApp:
                        font=('Microsoft YaHei', 9, 'bold'))
         vip.place(relx=1.0, x=-30, y=14, anchor='ne')
 
-    def _card(self, parent, title, accent_hex, subtitle=None, bg='#FFFFFF'):
-        """统一的卡片容器。返回 (card_frame, head_frame)。"""
+    def _card(self, parent, title, accent_hex, subtitle=None, bg='#FFFFFF', right_factory=None):
+        """统一的卡片容器。返回 (card_frame, inner_frame)。
+        title 显示在头部左侧；right_factory 若提供，则会在头部行内被调用，
+        并用其返回的组件当作标题右侧的同排内容（父级即标题行，保证同排）。"""
         card = tk.Frame(parent, bg=bg, highlightthickness=1, highlightbackground='#E2E8F0')
         side = tk.Frame(card, bg=accent_hex, width=5)
         side.pack(side='left', fill='y')
         inner = tk.Frame(card, bg=bg)
         inner.pack(side='left', fill='both', expand=True, padx=10, pady=6)
-        tk.Label(inner, text=title, bg=bg, fg='#0F172A',
-                 font=('Microsoft YaHei', 11, 'bold')).pack(anchor='w')
+        if right_factory is not None:
+            # 标题与提示同排：建头部行，标题靠左，提示紧随其后（padx 为约4个字符间距）
+            head = tk.Frame(inner, bg=bg)
+            head.pack(fill='x', anchor='w')
+            tk.Label(head, text=title, bg=bg, fg='#0F172A',
+                     font=('Microsoft YaHei', 11, 'bold')).pack(side='left')
+            rw = right_factory(head)
+            rw.config(bg=bg)
+            rw.pack(in_=head, side='left', padx=(44, 0))
+        else:
+            tk.Label(inner, text=title, bg=bg, fg='#0F172A',
+                     font=('Microsoft YaHei', 11, 'bold')).pack(anchor='w')
         if subtitle:
             tk.Label(inner, text=subtitle, bg=bg, fg='#94A3B8',
                      font=('Microsoft YaHei', 9)).pack(anchor='w', pady=(1, 0))
@@ -300,30 +312,31 @@ class GeoForgeApp:
                              highlightthickness=1)
         ref_frame.grid(row=0, column=1, sticky='nsew', padx=(12, 0))
         self.ref_frame = ref_frame
-        tk.Label(ref_frame, text="参考经纬度（DXF/DWG → 其余格式必填）",
+        tk.Label(ref_frame, text="参照经纬度（DXF转其余格式必填）",
                  bg='#FFFFFF', fg='#B45309', font=('Microsoft YaHei', 9, 'bold')).pack(anchor='w', padx=10, pady=(8, 2))
-        sub = tk.Label(ref_frame, text="CGCS2000 3°带内任一点，换算为 WGS84；格式：经度,纬度",
+        sub = tk.Label(ref_frame, text="所选图纸项目所在地附近任意一点经纬度，填写格式：经度,纬度",
                        bg='#FFFFFF', fg='#94A3B8', font=('Microsoft YaHei', 8))
         sub.pack(anchor='w', padx=10)
         self.ref_entry = tk.Entry(ref_frame, textvariable=self.ref_lonlat,
                                   font=('Microsoft YaHei', 10))
         self.ref_entry.pack(fill='x', padx=10, pady=(6, 4))
-        # 点击输入框即全选，便于一键清除更换新值
+        # 点击输入框即全选，便于一键清除更换新值（支持再次点击也全选）
         self.ref_entry.bind('<FocusIn>', self._ref_select_all)
+        self.ref_entry.bind('<Button-1>', self._ref_select_all)
         # 预置 3° 带坐标：点击对应 ZONE 按钮自动填入该带内的预置经纬度
         zones = ["Z29", "Z30", "Z35", "Z36", "Z37", "Z38", "Z39", "Z40"]
         zone_colors = ["#1E40AF", "#0EA5E9", "#059669", "#7C3AED", "#DB2777",
                        "#EA580C", "#0D9488", "#64748B"]
         zone_frame = tk.Frame(ref_frame, bg='#FFFFFF')
         zone_frame.pack(fill='x', padx=10, pady=(0, 8))
-        tk.Label(zone_frame, text="快速填入 3° 带预置坐标：", bg='#FFFFFF', fg='#64748B',
+        tk.Label(zone_frame, text="点击下列编号(Z29~Z40)自动填写3°带预置经纬度：", bg='#FFFFFF', fg='#64748B',
                  font=('Microsoft YaHei', 8)).pack(anchor='w', pady=(0, 4))
         zb_row = tk.Frame(zone_frame, bg='#FFFFFF')
         zb_row.pack(fill='x')
         for i, zone in enumerate(zones):
             _zc = zone_colors[i % len(zone_colors)]
-            btn = tk.Button(zb_row, text=zone, bg=_zc, fg='white', relief='flat',
-                            font=('Microsoft YaHei', 8, 'bold'), padx=0, pady=1, cursor='hand2',
+            btn = tk.Button(zb_row, text=zone, bg=_zc, fg='white', relief='raised', bd=2,
+                            font=('Microsoft YaHei', 9, 'bold'), padx=0, pady=2, cursor='hand2',
                             activebackground=_zc, activeforeground='white',
                             command=lambda z=zone: self._fill_zone_preset(z))
             btn.pack(side='left', fill='x', expand=True, padx=1)
@@ -338,7 +351,7 @@ class GeoForgeApp:
 
         # ---- 输出目录（独立卡片）----
         out_card, out_inner = self._card(opt_row, "输出目录", "#059669",
-                                         "默认保存到桌面，可点击“浏览…”自行修改")
+                                         "默认保存到桌面，可点击“浏览…”或手动填写确定修改")
         out_card.grid(row=0, column=0, sticky='nsew', padx=(0, 6))
         desktop = os.path.join(os.path.expanduser("~"), "Desktop")
         if not os.path.isdir(desktop):
@@ -368,10 +381,13 @@ class GeoForgeApp:
         out_btn.pack(side='right')
 
         # ---- 目标格式（加大徽章选择器）----
+        self.conv_hint_frame = None          # 由下方 right_factory 在标题行内创建
         fmt_card, fmt_inner = self._card(opt_row, "选择目标格式", "#D97706",
-                                         "点击格式徽章选择输出格式，点击下方「开始估算」和「开始转换」查看输出大小和转换操作")
+                                         "点击格式徽章选择输出格式，点击下方「开始估算」和「开始转换」查看输出大小和转换操作",
+                                         right_factory=lambda head: self._build_conv_hint(head))
         fmt_card.grid(row=0, column=1, sticky='nsew', padx=(6, 0))
         self.fmt_buttons = {}
+        self.conv_hint_badges = {}
         row_frame = None
         for idx, fmt in enumerate(FORMATS):
             if idx % 5 == 0:
@@ -451,6 +467,51 @@ class GeoForgeApp:
             else:
                 b.config(bg='#FFFFFF', fg='#334155', relief='solid',
                          highlightbackground='#CBD5E1')
+        self._update_conv_hint()
+
+    def _src_format(self):
+        """从源文件扩展名推导源格式显示名（无源文件返回 None）。"""
+        if not self.source_path:
+            return None
+        ext = os.path.splitext(self.source_path)[1].lower()
+        name = {
+            ".dxf": "DXF", ".dwg": "DWG", ".geojson": "GeoJSON", ".json": "JSON",
+            ".csv": "CSV", ".txt": "TXT", ".kml": "KML", ".gpx": "GPX",
+            ".osm": "OSM", ".xml": "XML", ".ovkml": "OVKML",
+        }
+        return name.get(ext, ext.lstrip('.').upper() or None)
+
+    def _build_conv_hint(self, head):
+        """在标题行 head 内创建转换提示框，随后由 _update_conv_hint 填充内容。"""
+        f = tk.Frame(head, bg='#FFFFFF')
+        self.conv_hint_frame = f
+        return f
+
+    def _update_conv_hint(self):
+        """渲染动态转换提示：源格式 转 目标格式（徽章同款样式）。"""
+        if not hasattr(self, 'conv_hint_frame') or self.conv_hint_frame is None:
+            return
+        # 清空旧的提示内容
+        for w in self.conv_hint_frame.winfo_children():
+            w.destroy()
+        src = self._src_format()
+        tgt = self.target_fmt.get()
+        if not src:
+            lbl = tk.Label(self.conv_hint_frame, text="尚未选择源文件",
+                           bg='#FFFFFF', fg='#94A3B8', font=('Microsoft YaHei', 9))
+            lbl.pack(side='left', padx=(6, 0))
+            return
+        # 源徽章
+        tk.Label(self.conv_hint_frame, text=src, bg=COLOR.get(src, '#2563EB'),
+                 fg='white', relief='flat', padx=8, pady=2,
+                 font=('Microsoft YaHei', 9, 'bold')).pack(side='left', padx=(6, 2))
+        # 箭头
+        tk.Label(self.conv_hint_frame, text=" 转 ", bg='#FFFFFF', fg='#F59E0B',
+                 font=('Microsoft YaHei', 10, 'bold')).pack(side='left')
+        # 目标徽章
+        tk.Label(self.conv_hint_frame, text=tgt, bg=COLOR.get(tgt, '#2563EB'),
+                 fg='white', relief='flat', padx=8, pady=2,
+                 font=('Microsoft YaHei', 9, 'bold')).pack(side='left', padx=(2, 0))
 
     def _is_projected_source(self):
         """源文件是否为投影米制（DXF/DWG），需要参考经纬度换算。"""
@@ -504,6 +565,7 @@ class GeoForgeApp:
         self.est_var.set("估算大小：--")
         self._update_ref_visibility()
         self.status_text.set("已取消选择")
+        self._update_conv_hint()
 
     def _read_reference(self):
         """解析参考经纬度（格式：经度,纬度）；非法时返回 None 并提示。"""
@@ -546,9 +608,20 @@ class GeoForgeApp:
             self.set_source(path)
 
     def set_source(self, path):
+        if not path or not os.path.isfile(path):
+            messagebox.showwarning(APP_NAME,
+                "无法识别的文件路径。\n"
+                "拖拽/选择的文件不存在，或路径含空格被错误拆分。\n"
+                "请改用“选择源文件”按钮从文件对话框选择，或重新拖拽一次。")
+            return False
+        ext = os.path.splitext(path)[1].lower()
+        if ext not in SUPPORTED_SRC_EXTS:
+            messagebox.showwarning(APP_NAME,
+                f"不支持的文件类型：{ext or '（无扩展名）'}。\n"
+                "请选择支持的源文件：DXF / DWG / GeoJSON / JSON / CSV / TXT / KML / GPX / OSM / XML。")
+            return False
         self.source_path = path
         fname = os.path.basename(path)
-        ext = os.path.splitext(path)[1].lower()
         fmt_name = EXT_TO_FMT.get(ext, 'GeoJSON')
 
         # 立即切换为文件展示样式（先于估算，让界面马上刷新）
@@ -571,6 +644,7 @@ class GeoForgeApp:
         self._bar_remaining = -1.0
         self._render_prog()
         self.est_var.set("估算大小：--")
+        self._update_conv_hint()
 
     def choose_outdir(self):
         d = filedialog.askdirectory(title="选择输出目录")
@@ -783,7 +857,8 @@ class GeoForgeApp:
                 path = job.run()
                 self.root.after(0, lambda: self._on_done(gen, job, path))
             except Exception as e:
-                self.root.after(0, lambda: self._on_error(gen, e))
+                err = e  # 提前绑定，避免 lambda 延迟引用 except 局部变量 e 时抛 NameError
+                self.root.after(0, lambda _e=err: self._on_error(gen, _e))
 
         threading.Thread(target=worker, daemon=True).start()
 
@@ -858,6 +933,10 @@ class GeoForgeApp:
         self.start_btn.config(state='normal', text="开始转换", bg='#2563EB',
                               activebackground='#1D4ED8')
         self._watch_stop_task()          # 停秒表
+        self._bar_val = 0
+        self._bar_target = 0
+        self._bar_remaining = -1.0
+        self._render_prog()
         self.status_text.set("转换失败")
         self._log.append(f"错误：{e}")
         messagebox.showerror(APP_NAME, str(e))
@@ -944,13 +1023,23 @@ class GeoForgeApp:
         except Exception as e:
             self._log.append(f"拖拽不可用：{e}")
 
-    def _on_drop(self, event):
+    def _parse_drop_paths(self, data):
+        """解析拖拽路径：tkdnd 对含空格的路径用 {} 包裹；未包裹且含空格的
+        单个路径，整个字符串即一个文件路径，绝不能按空格拆分。"""
+        data = (data or "").strip()
+        if not data:
+            return []
+        if ' ' in data and not data.startswith('{'):
+            return [data]
         try:
-            files = self.root.tk.splitlist(event.data)
+            return list(self.root.tk.splitlist(data))
         except Exception:
-            files = [str(event.data)]
-        if files:
-            self.set_source(files[0])
+            return [data]
+
+    def _on_drop(self, event):
+        paths = self._parse_drop_paths(event.data)
+        if paths:
+            self.set_source(paths[0])
 
 
 def main():

@@ -296,7 +296,12 @@ def load_file(path: str) -> ConvertedData:
     if ext in ('.dxf', '.dwg'):
         if ext == '.dwg':
             return load_dwg(path, base)
-        import ezdxf
+        try:
+            import ezdxf
+        except ImportError:
+            raise ValueError(
+                "缺少必要组件：ezdxf（用于解析 DXF 文件）。\n"
+                "请在本机安装：python -m pip install ezdxf，或用完整打包版 GeoForge。")
         try:
             doc = ezdxf.readfile(path)
         except Exception as e:

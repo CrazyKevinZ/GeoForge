@@ -100,6 +100,10 @@ class ConvertJob:
         self.data = load_file(self.source_path)
         if self.should_cancel:
             return ""
+        if self.data.total == 0:
+            raise ValueError(
+                "所选文件没有可转换的有效坐标数据（0 个要素），已取消转换。\n"
+                "请确认该文件是包含坐标的 DXF/GeoJSON/KML/GPX/CSV/TXT 等文件，或先修复数据后再试。")
         self._reproject()
         if self.should_cancel:
             return ""
@@ -148,6 +152,10 @@ class ConvertJob:
     def load_only(self):
         """仅解析（用于估算大小），不写盘。"""
         self.data = load_file(self.source_path)
+        if self.data.total == 0:
+            raise ValueError(
+                "所选文件没有可转换的有效坐标数据（0 个要素）。\n"
+                "请确认该文件是包含坐标的 DXF/GeoJSON/KML/GPX/CSV/TXT 等文件。")
         self._reproject()
         return self.data
 

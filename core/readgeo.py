@@ -35,11 +35,33 @@ def _add(data, feature):
     return feature
 
 
+def _strip_jsonc(text: str) -> str:
+    """去掉 // 行注释，返回可被 json.loads 解析的纯 JSON。"""
+    return '\n'.join(ln for ln in text.splitlines() if not ln.strip().startswith('//'))
+
+
+def _load_json_auto(path):
+    """读取 JSON（自动剥离 // 注释头）。若判定为 GeoForge 自身的界面配置
+    存档（含 geometry 且无 features），抛清晰提示而非硬转。"""
+    with open(path, encoding='utf-8-sig') as fh:
+        raw = fh.read()
+    try:
+        obj = json.loads(raw)
+    except json.JSONDecodeError:
+        obj = json.loads(_strip_jsonc(raw))
+    # GeoForge 自身的界面状态配置（geometry 键、无 features/坐标）→ 明确拒绝
+    if isinstance(obj, dict) and 'geometry' in obj and 'features' not in obj:
+        raise ValueError(
+            "这是 GeoForge 自身的界面配置文件（GeoForge_ui.json），"
+            "只记录窗口位置，不是坐标数据，不能作为源文件转换。\n"
+            "请拖入真正的 DXF/GeoJSON/KML/GPX/CSV/TXT 等坐标文件。")
+    return obj
+
+
 # ---------------------------------------------------------------- GeoJSON
 def read_geojson(path, name):
     data = _new(name, '.geojson')
-    with open(path, encoding='utf-8-sig') as fh:
-        obj = json.load(fh)
+    obj = _load_json_auto(path)
     feats = obj.get('features', []) if isinstance(obj, dict) else obj
     for f in feats:
         props = f.get('properties') or {}
@@ -85,8 +107,7 @@ def _find_features(obj):
 
 def read_json(path, name):
     data = _new(name, '.json')
-    with open(path, encoding='utf-8-sig') as fh:
-        obj = json.load(fh)
+    obj = _load_json_auto(path)
     found = False
     for item in _find_features(obj):
         # 兼容 GeoJSON Feature 或通用 {type, layer, coordinates, properties}
@@ -142,15 +163,8 @@ def _guess_csv_feature(header, row, data):
             return
         except (ValueError, TypeError):
             pass
-    # 无坐标则并入属性点（x/y 缺失时用 0,0）
-    f = Feature('Point', [0.0, 0.0], props, '0', '')
-    # 仅在确有坐标时算入范围
-    if x is not None and y is not None:
-        try:
-            _upd_bounds(data, (float(x), float(y)))
-        except Exception:
-            pass
-    _add(data, f)
+    # 该行没有坐标列 → 不作为要素；若整份文件都没有坐标行，total==0
+    # 会在转换/估算时被拒绝（不虚构 (0,0) 点）。
 
 
 def read_csv(path, name):
@@ -187,10 +201,8 @@ def read_txt(path, name):
                 continue
             f = Feature('Point', [x, y], {'text': s}, '0', '')
             _add(data, f); _upd_bounds(data, (x, y))
-        else:
-            # 文本行作为属性
-            f = Feature('Point', [0.0, 0.0], {'text': s}, '0', '')
-            _add(data, f)
+        # 说明：没有坐标的行不生成要素；若整份文件都没有坐标行，则视为
+        # 无有效坐标数据（total==0），转换/估算时会被拒绝，而不是虚构 (0,0) 点。
     if not data.features:
         data.bounds = (-180, -90, 180, 90)
     return data
