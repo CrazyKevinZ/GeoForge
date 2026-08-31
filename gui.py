@@ -19,7 +19,7 @@ from core.exporter import FORMATS, FMT_LABEL
 from core.estimator import human_size
 
 APP_NAME = "GeoForge 数据转换器"
-VIP_TEXT = "SVVVIP-破解版-V9.9.9.9"
+VIP_TEXT = "V 1.0.1.26081"
 
 EXT_TO_FMT = {
     ".dxf": "GeoJSON", ".dwg": "GeoJSON", ".geojson": "KML", ".kml": "GeoJSON",
@@ -109,11 +109,11 @@ class GeoForgeApp:
         root.minsize(820, 520)
 
         try:
-            logo = resource("LOGO.png")
-            if os.path.exists(logo):
-                img = tk.PhotoImage(file=logo)
-                root.iconphoto(True, img)
-                self._logo_img = img
+            # 窗口/任务栏图标：以内嵌 base64 方式打包，无需外部 LOGO.png
+            from core.icon import png_data_b64
+            img = tk.PhotoImage(data=png_data_b64())
+            root.iconphoto(True, img)
+            self._logo_img = img
         except Exception:
             pass
 

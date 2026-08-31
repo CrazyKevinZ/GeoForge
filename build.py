@@ -17,8 +17,8 @@ PARENT = os.path.dirname(HERE)                              # 上级目录（含
 BUILD = os.path.join(HERE, "_build")
 DIST = os.path.join(HERE, "_dist")
 
-# 目标（依 说明.txt）：本体放到 C:\Users\Administrator\Documents\Default Project\dxf2geojson
-TARGET = r"C:\Users\Administrator\Documents\Default Project\dxf2geojson"
+# 目标（公用版本）：本体放到 C:\Users\Administrator\Documents\Default Project\dxf2Gis
+TARGET = r"C:\Users\Administrator\Documents\Default Project\dxf2Gis"
 
 
 def main():
@@ -68,10 +68,7 @@ def main():
         os.makedirs(TARGET, exist_ok=True)
         dst = os.path.join(TARGET, "GeoForge.exe")
         shutil.copy(exe, dst)
-        # 把 LOGO 一并复制
-        logo = os.path.join(APP, "LOGO.png")
-        if os.path.exists(logo):
-            shutil.copy(logo, os.path.join(TARGET, "LOGO.png"))
+        # 窗口/任务栏图标已内嵌到 exe，运行时无需另放 LOGO.png
         print(f"\n[OK] 编译完成：{dst}")
         return 0
     else:
