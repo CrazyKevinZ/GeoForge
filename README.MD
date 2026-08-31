@@ -137,6 +137,7 @@ Source code/
     ├── main.py                   # 程序入口
     ├── gui.py                    # tkinter 图形界面（格式按钮/进度/参考经纬度/输出目录）
     ├── build.py                  # PyInstaller 一键编译脚本
+    ├── requirements.txt          #依赖库组件
     └── core/
         ├── reader.py             # DXF/DWG 读取（ezdxf），DWG 需外部转换
         ├── readgeo.py            # GeoJSON/JSON/CSV/TXT/KML/GPX/OSM/XML 读取
@@ -156,6 +157,10 @@ Source code/
 pip install pyinstaller ezdxf pillow
 python build.py
 ```
+依赖库：
+pip install -r requirements.txt
+python build.py
+
 脚本会自动：
 1. 用 `LOGO.png` 用作应用图标；
 2. 用 PyInstaller 编译为单文件 `GeoForge.exe`；
