@@ -134,8 +134,6 @@ DWG 转换功能入口保留，但需外部工具先行转换：
 
 ```
 Source code/
-├── UI.MD / UI.png / LOGO.png     # 界面与品牌参考
-└── dxf2geojson_app/
     ├── main.py                   # 程序入口
     ├── gui.py                    # tkinter 图形界面（格式按钮/进度/参考经纬度/输出目录）
     ├── build.py                  # PyInstaller 一键编译脚本
