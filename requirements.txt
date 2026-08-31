@@ -1,0 +1,4 @@
+ezdxf
+pyproj
+pillow
+pyinstaller
